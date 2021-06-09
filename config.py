@@ -5,6 +5,14 @@
 
 '''
 
+'''
+import shutil, os
+source_img_dir = '/home/rednax/Desktop/GitHub_Projects/FakeMeDeep/Data/raw'
+shutil.rmtree('Data2')
+os.makedirs('Data2/Todo/', exist_ok = True)
+for f in os.listdir(source_img_dir):
+    shutil.copy(os.path.join(source_img_dir, f), 'Data2/Todo')
+'''
 
 
 ############################################################
