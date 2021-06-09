@@ -104,6 +104,6 @@ if __name__ == "__main__":
 	python3 SG_server.py
 
 	"""
-	
+	print("Starting...")
 	SG_server = StyleGAN_Server()
 	SG_server.run()

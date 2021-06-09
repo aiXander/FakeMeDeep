@@ -18,7 +18,7 @@ for f in os.listdir(source_img_dir):
 ############################################################
 
 input_folder  = 'Data/Todo/'   # Input folder where the images are placed
-debug_mode    = False            # Set this to True to create a more verbose output and show full stack trace for errors
+debug_mode    = True            # Set this to True to create a more verbose output and show full stack trace for errors
 
 n_frames      = 120     # How many frames to render per video
 video_out_fps = 16      # fps of output video
