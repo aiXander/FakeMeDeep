@@ -6,6 +6,7 @@ from pathlib import Path
 import torch
 
 # Custom imports
+from download import *
 import config as cfg
 from encoder import StyleGAN_Encoder
 
@@ -104,6 +105,8 @@ if __name__ == "__main__":
 	python3 SG_server.py
 
 	"""
+	maybe_download_models()
+
 	print("Starting...")
 	SG_server = StyleGAN_Server()
 	SG_server.run()
