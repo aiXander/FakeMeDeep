@@ -1,10 +1,11 @@
 # FakeMeDeep
 
+A simple codebase to run a LIVE, StyleGAN-based facemorph.
 
-# Download pretrained models:
+## Main WorkFlow:
+1. edit config.py with the desired parameters
+2. run ```python SG_server.py```
+3. Any image added to the cfg.input_folder will be encoded into StyleGAN and rendered into a set of morphing videos
 
-## Face keypoint model:
-wget http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
-bzip2 -dk shape_predictor_68_face_landmarks.dat.bz2
-
-## 
+## Things to keep in mind:
+- This repo expects all incoming face images to have a unique name (eg add a timestamp)
