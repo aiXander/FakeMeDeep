@@ -22,7 +22,6 @@ class StyleGAN_Server():
 		self.input_folder              = cfg.input_folder
 		self.debug                     = cfg.debug_mode
 		self.accepted_image_extensions = cfg.accepted_image_extensions
-		self.interfacegan_directions   = cfg.interfacegan_directions
 		self.latent_directions_path    = cfg.latent_directions_path
 
 		self.setup_directories()
@@ -51,10 +50,10 @@ class StyleGAN_Server():
 				img_name   = Path(img_path).stem
 				img_folder = os.path.join(self.processed_folder, Path(img_path).stem)
 				json_path  = os.path.join(self.input_folder, img_name + '.json')
+				print("\n --- Processing %s..." %img_name)
 
 				json_info  = self.parse_json(json_path, img_name)
 				os.makedirs(img_folder, exist_ok = True)
-
 				if not self.debug:
 					try:
 						self.process_image(img_name, img_path, img_folder, json_info)
@@ -94,8 +93,22 @@ class StyleGAN_Server():
 
 		return json_info
 
+	def process_image_without_face_detection(self, img_path_new, img_name, img_folder):
+		print("Face extraction for %s failed, using raw image instead!" %img_name)
+		img = cv2.imread(img_path_new)
+		img = cv2.resize(img, (1024, 1024))
+
+		aligned_HD_img_path = os.path.join(img_folder, '%s_aligned_HD.jpg' %img_name)
+		cv2.imwrite(aligned_HD_img_path, img)
+
+		aligned_LD_img_path = os.path.join(img_folder, '%s_aligned_LD.jpg' %img_name)
+		img = cv2.resize(img, (256, 256))
+		cv2.imwrite(aligned_LD_img_path, img)
+
+		return aligned_HD_img_path, aligned_LD_img_path
+
+
 	def process_image(self, img_name, img_path_orig, img_folder, json_info):
-		print("\n --- Processing %s..." %img_path_orig)
 		img_path_new = os.path.join(img_folder, os.path.basename(img_path_orig))
 		shutil.copy(img_path_orig, img_path_new)
 
@@ -104,14 +117,8 @@ class StyleGAN_Server():
 			try:
 				aligned_HD_img_path, aligned_LD_img_path = self.model.align_one_img(img_name, img_path_new, fix = 1)
 			except:
-				print("Face extraction for %s failed, using raw image instead!" %img_name)
-				img = cv2.imread(img_path_new)
-				aligned_HD_img_path = os.path.join(img_folder, '%s_aligned_HD.jpg' %img_name)
-				cv2.imwrite(aligned_HD_img_path, img)
+				aligned_HD_img_path, aligned_LD_img_path = self.process_image_without_face_detection(img_path_new, img_name, img_folder)
 
-				aligned_LD_img_path = os.path.join(img_folder, '%s_aligned_LD.jpg' %img_name)
-				img = cv2.resize(img, (256, 256))
-				cv2.imwrite(aligned_LD_img_path, img)
 		else:
 			aligned_HD_img_path, aligned_LD_img_path = self.model.align_one_img(img_name, img_path_new, fix = 1)
 
@@ -137,5 +144,6 @@ if __name__ == "__main__":
 	maybe_download_models(verbose = cfg.debug_mode)
 
 	print("Starting...")
-	SG_server = StyleGAN_Server()
-	SG_server.run()
+	with torch.no_grad():
+		SG_server = StyleGAN_Server()
+		SG_server.run()

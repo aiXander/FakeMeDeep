@@ -1,54 +1,38 @@
-###### README ######
-'''
-- All images dumped into input_folder should have a unique name (eg timestamp)
-- 
-
-'''
 
 ############################################################
 
-input_folder  = 'data/todo/'   # Input folder where the images are placed
-debug_mode    = False          # Set this to True to create a more verbose output and show full stack trace for errors
+input_folder    = 'data/todo/'   # Input folder where the images are placed
+debug_mode      = True           # Set to True for verbose output + full error stack traces (server will crash on errors!!)
+
+#start_face_dir  = 'famous_faces' # Path of a directory with encoded faces (.npy files), set to None to start from random faces
+start_face_dir  = None           # Path of a directory with encoded faces (.npy files), set to None to start from random faces
 
 if debug_mode:
-        random_to_target_frames      = 160     # How many frames to render for the morph between random and target face
-        target_to_morphed_frames     = 25     # How many frames to render per target face and morphed version
+        random_to_target_duration      = 5.0     # How many frames to render for the morph between random and target face
+        target_to_morphed_duration     = 5.0     # How many frames to render per target face and morphed version
         video_out_fps = 16      # fps of output video
         concat_source = 1       # Add the original input image to the video for comparison
         concat_direction = 2    # 1 = vertical, 2 = horizontal
 else:
-        random_to_target_frames      = 240     # How many frames to render for the morph between random and target face
-        target_to_morphed_frames     = 200     # How many frames to render per target face and morphed version
-        video_out_fps = 32      # fps of output video
-        concat_source = 0       # Add the original input image to the video for comparison
-        concat_direction = 2    # 1 = vertical, 2 = horizontal      
+        random_to_target_duration      = 10.0    # Duration of the morph between random and target face (seconds)
+        target_to_morphed_duration     = 7.50    # Duration of the morph between target face and morphed version (seconds)
+        video_out_fps = 24      # fps of output video
+        concat_source = 1       # Add the original input image to the video for comparison
+        concat_direction = 2    # 1 = vertical, 2 = horizontal
 
+freeze_start  = 1.0 # How long to freeze at the start  of each video (seconds)
+freeze_middle = 0.7 # How long to freeze at the middle of each video (seconds)
+freeze_end    = 2.0 # How long to freeze at the end    of each video (seconds)
+
+ # Width of the smoothing window applied to the final interpolation (seconds)
+smoothing_window = 0.33 # 0 ---> abrupt changes between phases of the interpolation
 
 #Sometimes the face detection fails, in this case you can eg use the raw input image (at your own risk)
-use_raw_img_if_face_detection_fails = True
+use_raw_img_if_face_detection_fails = False
 
 # Sensitivities in both negative and positive directions:
 interfacegan_direction_sensitivities = {
-        'age':                  [-3, 6],
-        #'eye_distance':         [-24, 24],
-        'eyebrow':              [-24, 24],
-        #'eye_ratio':            [-18, 18],
-        'eyes_open':            [-30, 15],
-        'gender':               [-6, 6],
-        #'lip_ratio':            [-12, 12],
-        'mouth_open':           [-24, 30],
-        #'mouth_ratio':          [-20, 20],
-        #'nose_mouth_distance':  [-12, 12],
-        #'nose_ratio':           [-20, 20],
-        #'nose_tip':             [-20, 20],
-        'pitch':                [-4, 4],
-        #'roll':                 [-20, 20],
-        'smile':                [-1.5, 4],
-        'yaw':                  [-4.5, 4.5],
-}
-
-interfacegan_direction = {
-        'age':                  [-3, 6],
+        'age':                  [-7, 8],
         #'eye_distance':         [-24, 24],
         'eyebrow':              [-24, 24],
         #'eye_ratio':            [-18, 18],
