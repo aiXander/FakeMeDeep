@@ -7,15 +7,21 @@
 
 ############################################################
 
-input_folder  = 'Data/Todo/'   # Input folder where the images are placed
-debug_mode    = True          # Set this to True to create a more verbose output and show full stack trace for errors
+input_folder  = 'data/todo/'   # Input folder where the images are placed
+debug_mode    = False          # Set this to True to create a more verbose output and show full stack trace for errors
 
-random_to_target_frames      = 120     # How many frames to render for the morph between random and target face
-target_to_morphed_frames     = 100     # How many frames to render per target face and morphed version
-video_out_fps = 16      # fps of output video
-concat_source = 0       # Add the original input image to the video for comparison
-concat_direction = 2    # 1 = vertical, 2 = horizontal
-
+if debug_mode:
+        random_to_target_frames      = 160     # How many frames to render for the morph between random and target face
+        target_to_morphed_frames     = 25     # How many frames to render per target face and morphed version
+        video_out_fps = 16      # fps of output video
+        concat_source = 1       # Add the original input image to the video for comparison
+        concat_direction = 2    # 1 = vertical, 2 = horizontal
+else:
+        random_to_target_frames      = 240     # How many frames to render for the morph between random and target face
+        target_to_morphed_frames     = 200     # How many frames to render per target face and morphed version
+        video_out_fps = 32      # fps of output video
+        concat_source = 0       # Add the original input image to the video for comparison
+        concat_direction = 2    # 1 = vertical, 2 = horizontal      
 
 interfacegan_directions = {
         'age':        0.75,

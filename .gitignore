@@ -1,2 +1,4 @@
 encoder4editing/pretrained_models/*
 Data/*
+data/*
+__pycache__/

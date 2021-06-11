@@ -31,8 +31,8 @@ class StyleGAN_Server():
 	def setup_directories(self):
 		os.makedirs(self.input_folder,     exist_ok = True)
 		self.base_datadir     = Path(self.input_folder).parent
-		self.error_folder     = os.path.join(self.base_datadir, "Errors")
-		self.processed_folder = os.path.join(self.base_datadir, "Processed")
+		self.error_folder     = os.path.join(self.base_datadir, "errors")
+		self.processed_folder = os.path.join(self.base_datadir, "processed")
 		os.makedirs(self.error_folder,     exist_ok = True)
 		os.makedirs(self.processed_folder, exist_ok = True)
 
@@ -105,17 +105,8 @@ class StyleGAN_Server():
 		# encode face
 		latent = self.model.predict_latents(aligned_HD_img_path, aligned_LD_img_path, img_name).unsqueeze(0)
 
-		# create videos
-		video_dir = os.path.join(img_folder, 'videos')
-		os.makedirs(video_dir, exist_ok = True)
-
-		for direction_name, latent_range in self.interfacegan_directions.items():
-			if self.debug:
-				print("Rendering video for %s..." %direction_name)
-			direction_path = os.path.join(self.latent_directions_path, direction_name + '.npy')
-			direction      = torch.from_numpy(np.load(direction_path)).cuda().float()
-
-			self.model.make_interpolation_video(latent, img_name, json_info, video_dir, aligned_HD_img_path)
+		# create video
+		self.model.make_interpolation_video(latent, img_name, json_info, img_folder, aligned_HD_img_path)
 
 		if self.debug:
 			print("Done!\n")
