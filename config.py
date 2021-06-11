@@ -2,10 +2,10 @@
 ############################################################
 
 input_folder    = 'data/todo/'   # Input folder where the images are placed
-debug_mode      = True           # Set to True for verbose output + full error stack traces (server will crash on errors!!)
+debug_mode      = False           # Set to True for verbose output + full error stack traces (server will crash on any errors!!)
 
 #start_face_dir  = 'famous_faces' # Path of a directory with encoded faces (.npy files), set to None to start from random faces
-start_face_dir  = None           # Path of a directory with encoded faces (.npy files), set to None to start from random faces
+start_face_dir  = None            # Path of a directory with encoded faces (.npy files), set to None to start from random faces
 
 if debug_mode:
         random_to_target_duration      = 5.0     # How many frames to render for the morph between random and target face
@@ -37,7 +37,7 @@ interfacegan_direction_sensitivities = {
         'eyebrow':              [-24, 24],
         #'eye_ratio':            [-18, 18],
         'eyes_open':            [-30, 15],
-        'gender':               [-6, 6],
+        'gender':               [-7, 7],
         #'lip_ratio':            [-12, 12],
         'mouth_open':           [-24, 30],
         #'mouth_ratio':          [-20, 20],
@@ -53,7 +53,7 @@ interfacegan_direction_sensitivities = {
 ############################################################
 
 
-# Fxied, pretrained model paths:
+# Fixed, pretrained model paths:
 latent_directions_path    = "stylegan2directions"
 model_dir                 = "encoder4editing/pretrained_models/"
 e4e_model_path            = model_dir + "e4e_ffhq_encode.pt"
