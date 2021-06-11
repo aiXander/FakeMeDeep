@@ -101,11 +101,11 @@ if __name__ == "__main__":
 
 	"""
 
-	cd /home/rednax/Desktop/GitHub_Projects/Face_Editing/
-	python3 SG_server.py
+	cd /home/rednax/Desktop/GitHub_Projects/FakeMeDeep
+	python3 server.py
 
 	"""
-	maybe_download_models()
+	maybe_download_models(verbose = cfg.debug_mode)
 
 	print("Starting...")
 	SG_server = StyleGAN_Server()

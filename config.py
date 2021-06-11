@@ -38,8 +38,9 @@ interfacegan_directions = {
 
 
 # Fxied, pretrained model paths:
-e4e_model_path            = "encoder4editing/pretrained_models/e4e_ffhq_encode.pt"
-dlib_shape_predictor_path = "encoder4editing/pretrained_models/shape_predictor_68_face_landmarks.dat"
 latent_directions_path    = "stylegan2directions"
+model_dir                 = "encoder4editing/pretrained_models/"
+e4e_model_path            = model_dir + "e4e_ffhq_encode.pt"
+dlib_shape_predictor_path = model_dir + "shape_predictor_68_face_landmarks.dat"
 
 accepted_image_extensions = ['.jpg', '.jpeg', '.png']
