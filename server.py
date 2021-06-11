@@ -95,12 +95,25 @@ class StyleGAN_Server():
 		return json_info
 
 	def process_image(self, img_name, img_path_orig, img_folder, json_info):
-		print("Processing %s..." %img_path_orig)
+		print("\n --- Processing %s..." %img_path_orig)
 		img_path_new = os.path.join(img_folder, os.path.basename(img_path_orig))
 		shutil.copy(img_path_orig, img_path_new)
 
 		# extract face
-		aligned_HD_img_path, aligned_LD_img_path = self.model.align_one_img(img_name, img_path_new, fix = 1)
+		if cfg.use_raw_img_if_face_detection_fails:
+			try:
+				aligned_HD_img_path, aligned_LD_img_path = self.model.align_one_img(img_name, img_path_new, fix = 1)
+			except:
+				print("Face extraction for %s failed, using raw image instead!" %img_name)
+				img = cv2.imread(img_path_new)
+				aligned_HD_img_path = os.path.join(img_folder, '%s_aligned_HD.jpg' %img_name)
+				cv2.imwrite(aligned_HD_img_path, img)
+
+				aligned_LD_img_path = os.path.join(img_folder, '%s_aligned_LD.jpg' %img_name)
+				img = cv2.resize(img, (256, 256))
+				cv2.imwrite(aligned_LD_img_path, img)
+		else:
+			aligned_HD_img_path, aligned_LD_img_path = self.model.align_one_img(img_name, img_path_new, fix = 1)
 
 		# encode face
 		latent = self.model.predict_latents(aligned_HD_img_path, aligned_LD_img_path, img_name).unsqueeze(0)

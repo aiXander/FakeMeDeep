@@ -23,10 +23,9 @@ else:
         concat_source = 0       # Add the original input image to the video for comparison
         concat_direction = 2    # 1 = vertical, 2 = horizontal      
 
-interfacegan_directions = {
-        'age':        0.75,
-        'gender':     0.75,
-}
+
+#Sometimes the face detection fails, in this case you can eg use the raw input image (at your own risk)
+use_raw_img_if_face_detection_fails = True
 
 # Sensitivities in both negative and positive directions:
 interfacegan_direction_sensitivities = {
@@ -48,7 +47,7 @@ interfacegan_direction_sensitivities = {
         'yaw':                  [-4.5, 4.5],
 }
 
-interfacegan_directions = {
+interfacegan_direction = {
         'age':                  [-3, 6],
         #'eye_distance':         [-24, 24],
         'eyebrow':              [-24, 24],
