@@ -1,4 +1,4 @@
-import cv2, os, time, shutil
+import cv2, os, time, shutil, json, errno
 import numpy as np
 from tqdm import tqdm
 from datetime import datetime
@@ -9,6 +9,13 @@ import torch
 from download import *
 import config as cfg
 from encoder import StyleGAN_Encoder
+
+def silentremove(filename):
+    try:
+        os.remove(filename)
+    except OSError as e: # this would be "except OSError, e:" before Python 2.6
+        if e.errno != errno.ENOENT: # errno.ENOENT = no such file or directory
+            raise # re-raise exception if a different error occurred
 
 class StyleGAN_Server():
 	def __init__(self):
@@ -34,17 +41,25 @@ class StyleGAN_Server():
 		print("\nServer started at %s\n" %str(datetime.now()))
 
 		while True:
+			time.sleep(0.25) #Check for new inputs 4 times per second
+
 			raw_image_paths = self.get_input_content()
 			if len(raw_image_paths) > 0:
+				time.sleep(0.25) # Wait for the .json file to be saved to disk!
+
 				img_path   = raw_image_paths[0] #TODO which order do we use?
 				img_name   = Path(img_path).stem
 				img_folder = os.path.join(self.processed_folder, Path(img_path).stem)
+				json_path  = os.path.join(self.input_folder, img_name + '.json')
+
+				json_info  = self.parse_json(json_path, img_name)
 				os.makedirs(img_folder, exist_ok = True)
 
 				if not self.debug:
 					try:
-						self.process_image(img_name, img_path, img_folder)
-						os.remove(img_path)
+						self.process_image(img_name, img_path, img_folder, json_info)
+						silentremove(img_path)
+						silentremove(json_path)
 
 					except Exception as e:
 						print("Error processing %s: %s" %(img_path, str(e)))
@@ -54,10 +69,9 @@ class StyleGAN_Server():
 							pass
 						shutil.move(img_path, os.path.join(self.error_folder, os.path.basename(img_path)))
 				else:
-					self.process_image(img_name, img_path, img_folder)
-					os.remove(img_path)
-
-			time.sleep(0.2) #Check for new images 5 times per second
+					self.process_image(img_name, img_path, img_folder, json_info)
+					silentremove(img_path)
+					silentremove(json_path)
 
 	def get_input_content(self):
 		image_paths = sorted([os.path.join(self.input_folder, f) 
@@ -69,7 +83,18 @@ class StyleGAN_Server():
 
 		return image_paths
 
-	def process_image(self, img_name, img_path_orig, img_folder):
+	def parse_json(self, json_path, img_name):
+		if not os.path.exists(json_path):
+			json_path = cfg.default_json_path
+			print("No json file found for %s, using default.json!" %img_name)
+
+		json_info = json.load(open(json_path,))
+		if isinstance(json_info, list):
+			json_info = json_info[0]
+
+		return json_info
+
+	def process_image(self, img_name, img_path_orig, img_folder, json_info):
 		print("Processing %s..." %img_path_orig)
 		img_path_new = os.path.join(img_folder, os.path.basename(img_path_orig))
 		shutil.copy(img_path_orig, img_path_new)
@@ -78,7 +103,7 @@ class StyleGAN_Server():
 		aligned_HD_img_path, aligned_LD_img_path = self.model.align_one_img(img_name, img_path_new, fix = 1)
 
 		# encode face
-		latent = self.model.predict_latents(aligned_HD_img_path, aligned_LD_img_path, img_name)
+		latent = self.model.predict_latents(aligned_HD_img_path, aligned_LD_img_path, img_name).unsqueeze(0)
 
 		# create videos
 		video_dir = os.path.join(img_folder, 'videos')
@@ -88,9 +113,9 @@ class StyleGAN_Server():
 			if self.debug:
 				print("Rendering video for %s..." %direction_name)
 			direction_path = os.path.join(self.latent_directions_path, direction_name + '.npy')
-			direction = torch.from_numpy(np.load(direction_path)).cuda().float()
-			self.model.make_interpolation_video(latent.unsqueeze(0), direction, direction_name, img_name, latent_range,
-				video_dir, aligned_HD_img_path)
+			direction      = torch.from_numpy(np.load(direction_path)).cuda().float()
+
+			self.model.make_interpolation_video(latent, img_name, json_info, video_dir, aligned_HD_img_path)
 
 		if self.debug:
 			print("Done!\n")

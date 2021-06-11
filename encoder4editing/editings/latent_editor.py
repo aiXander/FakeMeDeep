@@ -5,7 +5,6 @@ sys.path.append("..")
 from editings import ganspace, sefa
 from utils.common import tensor2im
 
-
 class LatentEditor(object):
     def __init__(self, stylegan_generator, is_cars=False):
         self.generator = stylegan_generator
@@ -14,6 +13,24 @@ class LatentEditor(object):
     def apply_ganspace(self, latent, ganspace_pca, edit_directions):
         edit_latents = ganspace.edit(latent, ganspace_pca, edit_directions)
         return self._latents_to_image(edit_latents)
+
+    def interfacegan_interpolate(self, latent, direction, factor_range):
+        # Latent.shape = [1,18,512]
+        images = []
+        for f in factor_range:
+            img = self._latents_to_image(latent + f * direction)
+            images.append(img)
+
+        return images
+
+    def encode_latent_trajectory(self, trajectory):
+        images = []
+        for latent_point in trajectory:
+            img = self._latents_to_image(latent_point)
+            images.append(img)
+
+        return images
+
 
     def apply_interfacegan(self, latent, direction, factor=1, factor_range=None):
         edit_latents = []
@@ -40,6 +57,7 @@ class LatentEditor(object):
             images, _ = self.generator([latents], randomize_noise=False, input_is_latent=True)
             if self.is_cars:
                 images = images[:, :, 64:448, :]  # 512x512 -> 384x512
+
         horizontal_concat_image = torch.cat(list(images), 2)
         final_image = tensor2im(horizontal_concat_image)
         return final_image

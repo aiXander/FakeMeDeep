@@ -109,21 +109,45 @@ class StyleGAN_Encoder():
 
         return latent
 
-    def make_interpolation_video(self, latent, direction, direction_name, img_name, latent_range,
-        outdir, aligned_HD_img_path):
-        up   = np.linspace(0, latent_range[1], num=cfg.n_frames//4)
-        down = np.linspace(0, latent_range[0], num=cfg.n_frames//4)
-        multipliers = np.concatenate((up, up[::-1], down, down[::-1]))
-        
-        interpolation_images = self.editor.interfacegan_interpolate(latent, direction, multipliers)
-        results = np.stack([np.array(res) for res in interpolation_images])
+    def create_morphed_latent(self, start_latent, json_info):
+        morphed_latent = start_latent
+        return morphed_latent
+
+    def make_interpolation_video(self, latent, img_name, json_info, outdir, aligned_HD_img_path):
+
+        random_face_z = torch.from_numpy(np.random.normal(loc=0.0, scale=1.0, size=(1,512))).to("cuda").float()
+        random_face_w = self.net.decoder.get_latent(random_face_z).unsqueeze(1).repeat(1, 18, 1)
+
+        if 0:
+            up   = np.linspace(0, latent_range[1], num=cfg.n_frames//4)
+            down = np.linspace(0, latent_range[0], num=cfg.n_frames//4)
+            multipliers = np.concatenate((up, up[::-1], down, down[::-1]))
+            
+            interpolation_images = self.editor.interfacegan_interpolate(latent, direction, multipliers)
+            results = np.stack([np.array(res) for res in interpolation_images])
+
+        else:
+            trajectory = []
+            # Part I: random face ---> target face
+            for interpolation_f in np.linspace(0, 1, cfg.random_to_target_frames):
+                v = (1-interpolation_f) * random_face_w + interpolation_f * latent
+                trajectory.append(v)
+
+            # Part II: target face ---> morphed target face
+            morphed_latent = self.create_morphed_latent(latent, json_info)
+            for interpolation_f in np.linspace(0, 1, cfg.target_to_morphed_frames):
+                v = (1-interpolation_f) * latent + interpolation_f * morphed_latent
+                trajectory.append(v)
+
+            interpolation_images = self.editor.encode_latent_trajectory(torch.stack(trajectory))
+            results = np.stack([np.array(res) for res in interpolation_images])
         
         if cfg.concat_source:
             source_image = np.array(Image.open(aligned_HD_img_path))[np.newaxis, :]
             source_image = np.repeat(source_image, results.shape[0], axis=0)
             results = np.concatenate((source_image, results), axis=cfg.concat_direction)
 
-        video_path = os.path.join(outdir, img_name + '_%s.mp4' %direction_name)
+        video_path = os.path.join(outdir, img_name + '.mp4')
         write_video(video_path, results, cfg.video_out_fps)
 
 
